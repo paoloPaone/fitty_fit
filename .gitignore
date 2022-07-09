@@ -1,0 +1,6 @@
+__pycache__/
+test.db
+venv/
+nfts/
+web_data/
+.vscode/settings.json

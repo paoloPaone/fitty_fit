@@ -1,0 +1,29 @@
+# Human-readable name of the service
+name: fitty-fit 
+# Name of the service for usage in paths, usernames etc.: Should only consist of lowercase alphanumeric
+# characters, must be identical to the (URL) project name of the GitLab repo
+slug: fittyfit
+authors:
+  - fhantke <me@fhantke.de>
+
+install:
+  prevent_outgoing_connections: True
+  postinst_commands:
+      - ln -s /etc/systemd/system/docker-compose@.service /etc/systemd/system/faustctf.target.wants/docker-compose@fittyfit.service
+
+  container_images:
+      - faust.cs.fau.de:5000/fittyfit-deps
+      - faust.cs.fau.de:5000/fittyfit-web
+      - postgres
+
+
+checker:
+  script_path: checker/mychecker.py
+  # Upper bound of how long the Checker Script takes to run (for a single team)
+  # Used for scheduling checks within a tick, executions taking longer *may* get terminated
+  max_duration: 60
+  debian_packages:
+    - python3-requests
+  pip_packages: 
+    - pikepdf
+    - FPDF

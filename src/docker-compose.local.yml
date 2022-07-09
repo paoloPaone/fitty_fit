@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+    web:
+      build: ./fittyfit
+      command: gunicorn --bind 0.0.0.0:5001 app:app
+      volumes:
+        - ./web_data:/usr/src/app/data
+      ports:
+        - 5001:5001
+        

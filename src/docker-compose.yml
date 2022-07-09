@@ -1,0 +1,37 @@
+version: '2.2'
+
+services:
+    app-deps:
+        image: faust.cs.fau.de:5000/fittyfit-deps
+        build:
+            context: fittyfit 
+            dockerfile: Dockerfile.deps
+        scale: 0
+    web:
+        image: faust.cs.fau.de:5000/fittyfit-web
+        build: fittyfit
+        command: gunicorn --bind [::]:5001 app:app
+        restart: unless-stopped
+        volumes:
+            - ./web_data:/usr/src/app/data
+        ports:
+            - "5001:5001"
+    db:
+        image: postgres
+        restart: always
+        environment:
+            PGDATA: /var/lib/postgresql/data/pgdata
+            POSTGRES_USER: arnold
+            POSTGRES_DB: fitty
+            POSTGRES_PASSWORD: secret
+        volumes:
+            - ./database:/var/lib/postgresql/data 
+
+            
+networks:
+    default:
+        enable_ipv6: true
+        ipam:
+            driver: default
+            config:
+                - subnet: "fdff:d0ce:2727::1/64"

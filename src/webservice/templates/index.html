@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Mega TOTP Service</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Hello and Welcome!</h1>
+                <p>
+                    With our great one-time password service, you will never have to renew your password.
+                    This innovative service generates one military-grade password every 30 seconds.
+                    There is no chance, someone can hack you.
+                    Trust us, trust in security!
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h3>Add new secret</h3>
+                <form action="/" method="POST">
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="n">Enter Service Name</label>
+                            <input type="text" class="form-control" id="n" name="n">
+                        </div>
+
+                        <div class="col">
+                            <label for="s">Enter your Secret</label>
+                            <input type="text" class="form-control" id="s" name="s">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        {% if secrets %}
+        <div class="row">
+            <div class="col">
+                <h3>Your Passwords</h3>
+                <br>
+                <div class="progress">
+                    <div id="progress-bar" class="progress-bar" style="width:70%"></div>
+                </div>
+
+                <br>
+                <ul class="list-group">
+                    {% for secret in secrets %}
+                    <a class="list-group-item list-group-item-action secret" secret="{{secret.s}}" style="cursor: pointer;" data-toggle="tooltip" data-placement="top" title="Copy password for {{ secret.n }}">
+                        <div class="d-flex w-100 justify-content-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                              </svg>
+                            <h5 class="mb-1 ml-2">{{ secret.n }}</h5>
+                        </div>
+                        <p class="mb-1">...</p>
+                    </a>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="{{ url_for('static', filename='js/jquery-3.2.1.slim.min.js') }}" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script>
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+
+    <script>
+        function copyToClipboard(text) {
+            var sampleTextarea = document.createElement("textarea");
+            document.body.appendChild(sampleTextarea);
+            sampleTextarea.value = text; //save main text in it
+            sampleTextarea.select(); //select textarea contenrs
+            document.execCommand("copy");
+            document.body.removeChild(sampleTextarea);
+        }
+
+        function load_passwords() {
+
+            let elements = Array.from(document.getElementsByClassName("secret"));
+
+            elements.forEach(e => {
+                let secret = e.getAttribute("secret");
+                fetch("/get_password", {
+                        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: "s=" + secret
+                    })
+                    .then(response => data = response.text())
+                    .then(data => {
+                        console.log(data)
+                        e.children[1].innerText = data;
+                        e.onclick = () => copyToClipboard(data);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            });
+        }
+
+        function do_passwords() {
+            let date = new Date();
+            let seconds = date.getSeconds();
+
+            let progress_bar = document.getElementById("progress-bar");
+
+            if (progress_bar == null) return;
+
+            var total = 60; //set this on initial page load
+
+            var pcg = Math.floor(seconds / total * 100);
+
+            progress_bar.setAttribute('aria-valuenow', pcg);
+            progress_bar.setAttribute('style', 'width:' + Number(pcg) + '%');
+
+            if (seconds == 0) {
+                load_passwords();
+            }
+        }
+
+        load_passwords()
+        setInterval(do_passwords, 500);
+    </script>
+</body>
+
+</html>
