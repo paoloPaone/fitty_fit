@@ -46,7 +46,7 @@ class MyChecker(checkerlib.BaseChecker):
 
     def __init__(self, ip, team):
         checkerlib.BaseChecker.__init__(self, ip, team)
-        self._baseurl = f'http://[{self.ip}]:{PORT}/'
+        self._baseurl = f'http://{self.ip}:{PORT}/'
         logging.info(f"URL: {self._baseurl}")
 
     def place_flag(self, tick):
